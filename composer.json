@@ -1,5 +1,5 @@
 {
-  "name": "jdwx/args",
+  "name": "jdwx/quote",
   "description": "A simple PHP module for handling quoted strings.",
   "license": "MIT",
   "autoload": {
