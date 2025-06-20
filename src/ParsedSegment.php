@@ -17,49 +17,19 @@ class ParsedSegment {
     protected string $textOriginal;
 
 
+    private MultiOperator $escapes;
+
+
     public function __construct( Segment $i_type, string $i_text ) {
         $this->type = $i_type;
         $this->textProcessed = $i_text;
         $this->textOriginal = $i_text;
-    }
-
-
-    public static function substEscapeSequences( string $st ) : string {
-
-        # Handle special character escape sequences.
-        $st = str_replace( "\\n", "\n", $st );
-        $st = str_replace( "\\r", "\r", $st );
-        $st = str_replace( "\\t", "\t", $st );
-        $st = str_replace( "\\v", "\v", $st );
-        $st = str_replace( "\\e", "\e", $st );
-        $st = str_replace( "\\f", "\f", $st );
-        $st = str_replace( "\\0", "\0", $st );
-
-        # I wish I remembered why I did this. The code below just
-        # strips the backslash, so this is redundant. Did I mean
-        # to replace with '\\a' and '\\b' for some reason?
-        $st = str_replace( "\\a", '\a', $st );
-        $st = str_replace( "\\b", '\b', $st );
-
-        # Handle octal escape sequences.
-        $st = preg_replace_callback( '/\\\\([0-7]{1,3})/', function ( array $matches ) {
-            return chr( intval( octdec( $matches[ 1 ] ) ) );
-        }, $st );
-        assert( is_string( $st ) );
-
-        # Handle Unicode escape sequences like "\u00C3" => "Ã".
-        $st = preg_replace_callback( '/\\\\[uU]([0-9a-fA-F]{4})/', function ( $matches ) : string {
-            $bst = mb_convert_encoding( pack( 'H*', $matches[ 1 ] ), 'UTF-8', 'UCS-2BE' );
-            assert( is_string( $bst ) );
-            return $bst;
-        }, $st );
-        assert( is_string( $st ) );
-
-        # Anything else, just remove the backslash as if unquoted.
-        $st = preg_replace( '/\\\\(.)/', '$1', $st );
-        assert( is_string( $st ) );
-        return $st;
-
+        $this->escapes = new MultiOperator( [
+            new Escape\ControlCharEscape(),
+            new Escape\OctalEscape(),
+            new Escape\Unicode2BEscape(),
+            new Escape\BackslashEscape(),
+        ] );
     }
 
 
@@ -76,9 +46,9 @@ class ParsedSegment {
     public function getOriginal( bool $i_bIncludeComments = false ) : string {
         return match ( $this->type ) {
             Segment::DELIMITER, Segment::UNQUOTED => $this->textOriginal,
-            Segment::SINGLE_QUOTED => "'" . $this->textOriginal . "'",
-            Segment::DOUBLE_QUOTED => '"' . $this->textOriginal . '"',
-            Segment::BACK_QUOTED => '`' . $this->textOriginal . '`',
+            Segment::HARD_QUOTED => "'" . $this->textOriginal . "'",
+            Segment::SOFT_QUOTED => '"' . $this->textOriginal . '"',
+            Segment::CALLBACK_QUOTED => '`' . $this->textOriginal . '`',
             Segment::COMMENT => $i_bIncludeComments ? '#' . $this->textOriginal : '',
         };
     }
@@ -86,16 +56,16 @@ class ParsedSegment {
 
     public function getProcessed( bool $i_bIncludeQuotes = false ) : string {
         $txt = match ( $this->type ) {
-            Segment::DELIMITER, Segment::SINGLE_QUOTED, Segment::BACK_QUOTED => $this->textProcessed,
-            Segment::UNQUOTED, Segment::DOUBLE_QUOTED => self::substEscapeSequences( $this->textProcessed ),
+            Segment::DELIMITER, Segment::HARD_QUOTED, Segment::CALLBACK_QUOTED => $this->textProcessed,
+            Segment::UNQUOTED, Segment::SOFT_QUOTED => self::substEscapeSequences( $this->textProcessed ),
             Segment::COMMENT => '',
         };
         if ( $i_bIncludeQuotes ) {
-            if ( Segment::SINGLE_QUOTED === $this->type ) {
+            if ( Segment::HARD_QUOTED === $this->type ) {
                 $txt = "'" . $txt . "'";
-            } elseif ( Segment::DOUBLE_QUOTED === $this->type ) {
+            } elseif ( Segment::SOFT_QUOTED === $this->type ) {
                 $txt = '"' . $txt . '"';
-            } elseif ( Segment::BACK_QUOTED === $this->type ) {
+            } elseif ( Segment::CALLBACK_QUOTED === $this->type ) {
                 $txt = '`' . $txt . '`';
             }
         }
@@ -114,16 +84,21 @@ class ParsedSegment {
 
 
     public function substBackQuotes( callable $i_fnCallback ) : void {
-        if ( Segment::BACK_QUOTED !== $this->type ) {
+        if ( Segment::CALLBACK_QUOTED !== $this->type ) {
             return;
         }
         $this->textProcessed = $i_fnCallback( $this->textProcessed );
     }
 
 
+    public function substEscapeSequences( string $st ) : string {
+        return ( $this->escapes )( $st );
+    }
+
+
     /** @param array<string, string> $i_rVariables */
     public function substVariables( array $i_rVariables ) : true|string {
-        if ( Segment::SINGLE_QUOTED === $this->type ) {
+        if ( Segment::HARD_QUOTED === $this->type ) {
             return true;
         }
         $bst = $this->substVariablesWithBraces( $i_rVariables );

@@ -30,11 +30,11 @@ final class ParsedSegmentTest extends TestCase {
     public function testGetOriginal() : void {
         $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getOriginal() );
-        $x = new ParsedSegment( Segment::SINGLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
         self::assertSame( "'foo'", $x->getOriginal() );
-        $x = new ParsedSegment( Segment::DOUBLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
         self::assertSame( '"foo"', $x->getOriginal() );
-        $x = new ParsedSegment( Segment::BACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
         self::assertSame( '`foo`', $x->getOriginal() );
         $x = new ParsedSegment( Segment::COMMENT, 'foo' );
         self::assertSame( '', $x->getOriginal() );
@@ -44,22 +44,22 @@ final class ParsedSegmentTest extends TestCase {
     public function testGetProcessed() : void {
         $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::SINGLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::DOUBLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::BACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
         $x = new ParsedSegment( Segment::COMMENT, 'foo' );
         self::assertSame( '', $x->getProcessed() );
 
         $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::SINGLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
         self::assertSame( "'foo'", $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::DOUBLE_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
         self::assertSame( '"foo"', $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::BACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
         self::assertSame( '`foo`', $x->getProcessed( true ) );
         $x = new ParsedSegment( Segment::COMMENT, 'foo' );
         self::assertSame( '', $x->getProcessed( true ) );
@@ -90,7 +90,7 @@ final class ParsedSegmentTest extends TestCase {
         } );
         self::assertSame( 'foo', $x->getProcessed() );
 
-        $x = new ParsedSegment( Segment::BACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
         $x->substBackQuotes( function () {
             return 'bar';
         } );
@@ -99,27 +99,9 @@ final class ParsedSegmentTest extends TestCase {
 
 
     public function testSubstEscapeSequences() : void {
-        self::assertSame( 'foo', ParsedSegment::substEscapeSequences( 'foo' ) );
-        self::assertSame( "Foo\nBar", ParsedSegment::substEscapeSequences( 'Foo\nBar' ) );
-        self::assertSame( "Foo\rBar", ParsedSegment::substEscapeSequences( 'Foo\rBar' ) );
-        self::assertSame( "Foo\tBar", ParsedSegment::substEscapeSequences( 'Foo\tBar' ) );
-        self::assertSame( "Foo\vBar", ParsedSegment::substEscapeSequences( 'Foo\vBar' ) );
-        self::assertSame( "Foo\eBar", ParsedSegment::substEscapeSequences( 'Foo\eBar' ) );
-        self::assertSame( "Foo\fBar", ParsedSegment::substEscapeSequences( 'Foo\fBar' ) );
-        self::assertSame( "Foo\0Bar", ParsedSegment::substEscapeSequences( 'Foo\0Bar' ) );
-        self::assertSame( 'Foo aBar', ParsedSegment::substEscapeSequences( 'Foo \aBar' ) );
-        self::assertSame( 'Foo bBar', ParsedSegment::substEscapeSequences( 'Foo \bBar' ) );
-
-        self::assertSame( 'FooBar', ParsedSegment::substEscapeSequences( 'Foo\\Bar' ) );
-
-        # Octal test.
-        self::assertSame( 'FooBar', ParsedSegment::substEscapeSequences( 'FooB\141r' ) );
-
-        # Unicode test.
-        self::assertSame( 'FooBar', ParsedSegment::substEscapeSequences( 'FooB\u0061r' ) );
-        self::assertSame( 'FooBar', ParsedSegment::substEscapeSequences( 'Foo\U0042ar' ) );
-
-        self::assertSame( 'Foo\\Bar', ParsedSegment::substEscapeSequences( 'Foo\\\\Bar' ) );
+        $seg = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        self::assertSame( 'foo', $seg->substEscapeSequences( 'foo' ) );
+        self::assertSame( "FooBar\n", $seg->substEscapeSequences( 'F\o\o\102\U0061r\n' ) );
     }
 
 
@@ -235,7 +217,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForSingleQuotes() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::SINGLE_QUOTED, "foo \$bar baz" );
+        $x = new ParsedSegment( Segment::HARD_QUOTED, "foo \$bar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( "foo \$bar baz", $x->getProcessed() );

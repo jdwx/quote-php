@@ -18,7 +18,7 @@ class ParsedString implements Countable {
 
 
     public function addBackQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::BACK_QUOTED, $i_st );
+        $this->addSegment( Segment::CALLBACK_QUOTED, $i_st );
     }
 
 
@@ -28,12 +28,12 @@ class ParsedString implements Countable {
 
 
     public function addDoubleQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::DOUBLE_QUOTED, $i_st );
+        $this->addSegment( Segment::SOFT_QUOTED, $i_st );
     }
 
 
     public function addSingleQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::SINGLE_QUOTED, $i_st );
+        $this->addSegment( Segment::HARD_QUOTED, $i_st );
     }
 
 

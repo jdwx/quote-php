@@ -90,7 +90,7 @@ final class ParsedStringTest extends TestCase {
         self::assertCount( 5, $r );
         self::assertSame( Segment::UNQUOTED, $r[ 0 ][ 'type' ] );
         self::assertSame( Segment::DELIMITER, $r[ 1 ][ 'type' ] );
-        self::assertSame( Segment::DOUBLE_QUOTED, $r[ 2 ][ 'type' ] );
+        self::assertSame( Segment::SOFT_QUOTED, $r[ 2 ][ 'type' ] );
         self::assertSame( Segment::DELIMITER, $r[ 3 ][ 'type' ] );
         self::assertSame( Segment::UNQUOTED, $r[ 4 ][ 'type' ] );
         self::assertSame( 'foo', $r[ 0 ][ 'textOriginal' ] );
