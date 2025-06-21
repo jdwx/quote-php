@@ -29,7 +29,7 @@ class QuoteOperator extends AbstractOperator {
     }
 
 
-    public static function comment( bool $i_bIgnoreUnclosed = false ) : self {
+    public static function cComment( bool $i_bIgnoreUnclosed = false ) : self {
         return new self( '/*', '*/', $i_bIgnoreUnclosed );
     }
 

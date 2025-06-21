@@ -29,7 +29,7 @@ final class QuoteOperatorTest extends OperatorTestCase {
 
 
     public function testComment() : void {
-        $quote = QuoteOperator::comment();
+        $quote = QuoteOperator::cComment();
         self::assertSame( 'Foo', $quote( '/*Foo*/' ) );
         self::assertSame( 'FooBarBaz', $quote( 'Foo/*Bar*/Baz' ) );
         self::assertSame( "Foo'Bar'Baz", $quote( "Foo'Bar'Baz" ) );

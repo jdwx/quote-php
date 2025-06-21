@@ -201,7 +201,7 @@ final class ParserTest extends TestCase {
 
 
     private function makeComplexParser() : Parser {
-        $comment = QuoteOperator::comment();
+        $comment = QuoteOperator::cComment();
         $hardQuote = QuoteOperator::single();
         $softQuote = QuoteOperator::double();
         $strongCallback = QuoteOperator::backtick();
