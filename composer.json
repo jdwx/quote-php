@@ -1,6 +1,6 @@
 {
   "name": "jdwx/quote",
-  "description": "A simple PHP module for handling quoted strings.",
+  "description": "A PHP module for handling complex quoted strings.",
   "license": "MIT",
   "autoload": {
     "psr-4": {
