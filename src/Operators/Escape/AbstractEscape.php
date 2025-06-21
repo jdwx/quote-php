@@ -4,10 +4,10 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Escape;
+namespace JDWX\Quote\Operators\Escape;
 
 
-use JDWX\Quote\AbstractOperator;
+use JDWX\Quote\Operators\AbstractOperator;
 
 
 abstract class AbstractEscape extends AbstractOperator {

@@ -4,13 +4,13 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote;
+namespace JDWX\Quote\Operators;
+
+
+use JDWX\Quote\Piece;
 
 
 abstract class AbstractOperator implements OperatorInterface {
-
-
-    protected Segment $segmentDefault = Segment::UNDEFINED;
 
 
     public function __invoke( string $i_st ) : string {
@@ -30,7 +30,7 @@ abstract class AbstractOperator implements OperatorInterface {
 
 
     protected function makePiece( string $stMatch, string $stReplace, string $stRest ) : Piece {
-        return new Piece( $stMatch, $stReplace, $stRest, $this->segmentDefault );
+        return new Piece( $stMatch, $stReplace, $stRest );
     }
 
 

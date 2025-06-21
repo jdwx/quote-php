@@ -4,10 +4,11 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote;
+namespace JDWX\Quote\Operators;
 
 
-use JDWX\Quote\Escape\AbstractEscape;
+use JDWX\Quote\Operators\Escape\AbstractEscape;
+use JDWX\Quote\Piece;
 
 
 class MultiOperator extends AbstractEscape {
@@ -36,6 +37,7 @@ class MultiOperator extends AbstractEscape {
     }
 
 
+    /** @codeCoverageIgnore Not used. */
     protected function replace( string $i_stMatch ) : ?string {
         return null;
     }

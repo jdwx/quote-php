@@ -8,7 +8,7 @@ namespace JDWX\Quote\Tests;
 
 
 use JDWX\Quote\ParsedSegment;
-use JDWX\Quote\Segment;
+use JDWX\Quote\SegmentType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -18,79 +18,79 @@ final class ParsedSegmentTest extends TestCase {
 
 
     public function testDebug() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $r = $x->debug();
         self::assertCount( 3, $r );
-        self::assertSame( Segment::UNQUOTED, $r[ 'type' ] );
+        self::assertSame( SegmentType::UNQUOTED, $r[ 'type' ] );
         self::assertSame( 'foo', $r[ 'textOriginal' ] );
         self::assertSame( 'foo', $r[ 'textProcessed' ] );
     }
 
 
     public function testGetOriginal() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getOriginal() );
-        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::HARD_QUOTED, 'foo' );
         self::assertSame( "'foo'", $x->getOriginal() );
-        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::SOFT_QUOTED, 'foo' );
         self::assertSame( '"foo"', $x->getOriginal() );
-        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::STRONG_CALLBACK, 'foo' );
         self::assertSame( '`foo`', $x->getOriginal() );
-        $x = new ParsedSegment( Segment::COMMENT, 'foo' );
+        $x = new ParsedSegment( SegmentType::COMMENT, 'foo' );
         self::assertSame( '', $x->getOriginal() );
     }
 
 
     public function testGetProcessed() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::HARD_QUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::SOFT_QUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::STRONG_CALLBACK, 'foo' );
         self::assertSame( 'foo', $x->getProcessed() );
-        $x = new ParsedSegment( Segment::COMMENT, 'foo' );
+        $x = new ParsedSegment( SegmentType::COMMENT, 'foo' );
         self::assertSame( '', $x->getProcessed() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::HARD_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::HARD_QUOTED, 'foo' );
         self::assertSame( "'foo'", $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::SOFT_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::SOFT_QUOTED, 'foo' );
         self::assertSame( '"foo"', $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::STRONG_CALLBACK, 'foo' );
         self::assertSame( '`foo`', $x->getProcessed( true ) );
-        $x = new ParsedSegment( Segment::COMMENT, 'foo' );
+        $x = new ParsedSegment( SegmentType::COMMENT, 'foo' );
         self::assertSame( '', $x->getProcessed( true ) );
 
     }
 
 
     public function testIsComment() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertFalse( $x->isComment() );
-        $x = new ParsedSegment( Segment::COMMENT, 'foo' );
+        $x = new ParsedSegment( SegmentType::COMMENT, 'foo' );
         self::assertTrue( $x->isComment() );
     }
 
 
     public function testIsDelimiter() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertFalse( $x->isDelimiter() );
-        $x = new ParsedSegment( Segment::DELIMITER, 'foo' );
+        $x = new ParsedSegment( SegmentType::DELIMITER, 'foo' );
         self::assertTrue( $x->isDelimiter() );
     }
 
 
     public function testSubstBackQuotes() : void {
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $x->substBackQuotes( function ( $i_st ) {
             return $i_st;
         } );
         self::assertSame( 'foo', $x->getProcessed() );
 
-        $x = new ParsedSegment( Segment::CALLBACK_QUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::STRONG_CALLBACK, 'foo' );
         $x->substBackQuotes( function () {
             return 'bar';
         } );
@@ -99,7 +99,7 @@ final class ParsedSegmentTest extends TestCase {
 
 
     public function testSubstEscapeSequences() : void {
-        $seg = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $seg = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         self::assertSame( 'foo', $seg->substEscapeSequences( 'foo' ) );
         self::assertSame( "FooBar\n", $seg->substEscapeSequences( 'F\o\o\102\U0061r\n' ) );
     }
@@ -108,19 +108,19 @@ final class ParsedSegmentTest extends TestCase {
     public function testSubstVariablesForBare() : void {
         $rVariables = [ 'bar' => 'qux' ];
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $y = $x->substVariables( [] );
         self::assertTrue( $y );
         self::assertSame( 'foo', $x->getProcessed() );
         self::assertSame( 'foo', $x->getOriginal() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo', $x->getProcessed() );
         self::assertSame( 'foo', $x->getOriginal() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \$bar baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \$bar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo qux baz', $x->getProcessed() );
@@ -130,7 +130,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBareValidAfterError() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \$baz \$bar" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \$baz \$bar" );
         $y = $x->substVariables( $rVariables );
         # It's still an error.
         self::assertIsString( $y );
@@ -140,7 +140,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBareWithMultipleLonger() : void {
         $rVariables = [ 'foo' => 'qux', 'foobar' => 'quux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \$foobar baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \$foobar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo quux baz', $x->getProcessed() );
@@ -150,7 +150,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBareWithMultipleShorter() : void {
         $rVariables = [ 'foobar' => 'quux', 'foo' => 'qux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \$foobar baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \$foobar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo quux baz', $x->getProcessed() );
@@ -160,7 +160,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBareWithUndefinedVariable() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \$baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \$baz" );
         $y = $x->substVariables( $rVariables );
         self::assertIsString( $y );
         self::assertStringContainsString( 'Undefined', strval( $y ) );
@@ -170,25 +170,25 @@ final class ParsedSegmentTest extends TestCase {
     public function testSubstVariablesForBraces() : void {
         $rVariables = [ 'bar' => 'qux' ];
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $y = $x->substVariables( [] );
         self::assertTrue( $y );
         self::assertSame( 'foo', $x->getProcessed() );
         self::assertSame( 'foo', $x->getOriginal() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo' );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo', $x->getProcessed() );
         self::assertSame( 'foo', $x->getOriginal() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \${bar} baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \${bar} baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo qux baz', $x->getProcessed() );
         self::assertSame( "foo \${bar} baz", $x->getOriginal() );
 
-        $x = new ParsedSegment( Segment::UNQUOTED, 'foo {bar} baz' );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, 'foo {bar} baz' );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( 'foo {bar} baz', $x->getProcessed() );
@@ -199,7 +199,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBracesWithUndefinedVariable() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \${baz}" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \${baz}" );
         $y = $x->substVariables( $rVariables );
         self::assertIsString( $y );
         self::assertStringContainsString( 'Undefined', strval( $y ) );
@@ -208,7 +208,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForBracesWithUnmatchedBrace() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::UNQUOTED, "foo \${bar baz" );
+        $x = new ParsedSegment( SegmentType::UNQUOTED, "foo \${bar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertIsString( $y );
         self::assertStringContainsString( 'Unmatched', strval( $y ) );
@@ -217,7 +217,7 @@ final class ParsedSegmentTest extends TestCase {
 
     public function testSubstVariablesForSingleQuotes() : void {
         $rVariables = [ 'bar' => 'qux' ];
-        $x = new ParsedSegment( Segment::HARD_QUOTED, "foo \$bar baz" );
+        $x = new ParsedSegment( SegmentType::HARD_QUOTED, "foo \$bar baz" );
         $y = $x->substVariables( $rVariables );
         self::assertTrue( $y );
         self::assertSame( "foo \$bar baz", $x->getProcessed() );

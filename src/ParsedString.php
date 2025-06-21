@@ -18,32 +18,32 @@ class ParsedString implements Countable {
 
 
     public function addBackQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::CALLBACK_QUOTED, $i_st );
+        $this->addSegment( SegmentType::STRONG_CALLBACK, $i_st );
     }
 
 
     public function addComment( string $i_st ) : void {
-        $this->addSegment( Segment::COMMENT, $i_st );
+        $this->addSegment( SegmentType::COMMENT, $i_st );
     }
 
 
     public function addDoubleQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::SOFT_QUOTED, $i_st );
+        $this->addSegment( SegmentType::SOFT_QUOTED, $i_st );
     }
 
 
     public function addSingleQuoted( string $i_st ) : void {
-        $this->addSegment( Segment::HARD_QUOTED, $i_st );
+        $this->addSegment( SegmentType::HARD_QUOTED, $i_st );
     }
 
 
     public function addSpace( string $i_ch = ' ' ) : void {
-        $this->addSegment( Segment::DELIMITER, $i_ch );
+        $this->addSegment( SegmentType::DELIMITER, $i_ch );
     }
 
 
     public function addUnquoted( string $i_st ) : void {
-        $this->addSegment( Segment::UNQUOTED, $i_st );
+        $this->addSegment( SegmentType::UNQUOTED, $i_st );
     }
 
 
@@ -52,7 +52,7 @@ class ParsedString implements Countable {
     }
 
 
-    /** @return list<array<string, string|Segment>> */
+    /** @return list<array<string, string|SegmentType>> */
     public function debug() : array {
         $rOut = [];
         foreach ( $this->rSegments as $seg ) {
@@ -165,7 +165,7 @@ class ParsedString implements Countable {
     }
 
 
-    private function addSegment( Segment $i_type, string $i_text ) : void {
+    private function addSegment( SegmentType $i_type, string $i_text ) : void {
         if ( '' === $i_text ) {
             return;
         }

@@ -4,7 +4,10 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote;
+namespace JDWX\Quote\Operators;
+
+
+use JDWX\Quote\Piece;
 
 
 interface OperatorInterface {
@@ -14,6 +17,6 @@ interface OperatorInterface {
 
 
     public function match( string $i_st ) : ?Piece;
-
+    
 
 }

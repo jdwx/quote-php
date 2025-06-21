@@ -8,7 +8,7 @@ namespace JDWX\Quote\Tests;
 
 
 use JDWX\Quote\ParsedString;
-use JDWX\Quote\Segment;
+use JDWX\Quote\SegmentType;
 use JDWX\Quote\StringParser;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -88,11 +88,11 @@ final class ParsedStringTest extends TestCase {
         $x->substVariables( [ 'baz' => 'qux' ] );
         $r = $x->debug();
         self::assertCount( 5, $r );
-        self::assertSame( Segment::UNQUOTED, $r[ 0 ][ 'type' ] );
-        self::assertSame( Segment::DELIMITER, $r[ 1 ][ 'type' ] );
-        self::assertSame( Segment::SOFT_QUOTED, $r[ 2 ][ 'type' ] );
-        self::assertSame( Segment::DELIMITER, $r[ 3 ][ 'type' ] );
-        self::assertSame( Segment::UNQUOTED, $r[ 4 ][ 'type' ] );
+        self::assertSame( SegmentType::UNQUOTED, $r[ 0 ][ 'type' ] );
+        self::assertSame( SegmentType::DELIMITER, $r[ 1 ][ 'type' ] );
+        self::assertSame( SegmentType::SOFT_QUOTED, $r[ 2 ][ 'type' ] );
+        self::assertSame( SegmentType::DELIMITER, $r[ 3 ][ 'type' ] );
+        self::assertSame( SegmentType::UNQUOTED, $r[ 4 ][ 'type' ] );
         self::assertSame( 'foo', $r[ 0 ][ 'textOriginal' ] );
         self::assertSame( 'foo', $r[ 0 ][ 'textProcessed' ] );
         self::assertSame( "\"bar\"", $r[ 2 ][ 'textOriginal' ] );

@@ -7,53 +7,176 @@ declare( strict_types = 1 );
 namespace JDWX\Quote;
 
 
+use JDWX\Quote\Operators\OperatorInterface;
+
+
 readonly class Parser {
 
 
-    private array $operators;
+    /** @var (callable( string ) : string)|null */
+    private mixed $fnStrong;
+
+    /** @var (callable( string ) : string)|null */
+    private mixed $fnWeak;
+
+    /** @var (callable( string ) : string)|null */
+    private mixed $fnOpen;
 
 
-    public function __construct( array|OperatorInterface $operators ) {
-        if ( $operators instanceof OperatorInterface ) {
-            $operators = [ $operators ];
-        }
-        $this->operators = $operators;
+    public function __construct(
+        private ?OperatorInterface $comment = null,
+        private ?OperatorInterface $hardQuote = null,
+        private ?OperatorInterface $softQuote = null,
+        private ?OperatorInterface $strongCallback = null,
+        private ?OperatorInterface $weakCallback = null,
+        private ?OperatorInterface $openCallback = null,
+        private ?OperatorInterface $escape = null,
+        private ?OperatorInterface $delimiter = null,
+        ?callable                  $fnStrong = null,
+        ?callable                  $fnWeak = null,
+        ?callable                  $fnOpen = null
+    ) {
+        $this->fnStrong = $fnStrong;
+        $this->fnWeak = $fnWeak;
+        $this->fnOpen = $fnOpen;
     }
 
 
-    public function __invoke( string $i_st ) : array {
+    /** @return iterable<Segment> */
+    public function __invoke( string $i_st ) : iterable {
+        return $this->parse( SegmentType::UNDEFINED, $i_st );
+    }
+
+
+    protected function comment( string $i_stOriginal ) : \Generator {
+        yield new Segment( SegmentType::COMMENT, '', $i_stOriginal );
+    }
+
+
+    protected function delimiter( string $i_stValue ) : \Generator {
+        yield new Segment( SegmentType::DELIMITER, $i_stValue, $i_stValue );
+    }
+
+
+    protected function escape( string $i_stValue, string $i_stOriginal ) : \Generator {
+        $st = Segment::mergeValues( $this->parse( SegmentType::ESCAPE, $i_stValue ) );
+        yield new Segment( SegmentType::LITERAL, $st, $i_stOriginal );
+    }
+
+
+    protected function hardQuote( string $i_stValue, string $i_stOriginal ) : \Generator {
+        yield new Segment( SegmentType::HARD_QUOTED, $i_stValue, $i_stOriginal );
+    }
+
+
+    protected function openCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
+        $st = Segment::mergeValues( $this->parse( SegmentType::OPEN_CALLBACK, $i_stValue ) );
+        $st = $this->fnOpen ? ( $this->fnOpen )( $st ) : $st;
+        yield new Segment( SegmentType::OPEN_CALLBACK, $st, $i_stOriginal );
+    }
+
+
+    protected function parse( SegmentType $i_type, string $i_st ) : \Generator {
         $stRest = $i_st;
-        $stUnquoted = '';
-        $r = [];
         while ( '' !== $stRest ) {
-            $match = $this->match( $stRest );
-            if ( $match instanceof Piece ) {
-                if ( '' !== $stUnquoted ) {
-                    $r[] = new Piece( $stUnquoted, $stUnquoted, $stRest, Segment::UNQUOTED );
-                    $stUnquoted = '';
+
+            if ( $i_type->allowComments() ) {
+                $match = $this->comment?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->comment( $match->stMatch );
+                    continue;
                 }
-                $r[] = $match;
-                $stRest = $match->stRest;
-                continue;
             }
-            $stUnquoted .= substr( $stRest, 0, 1 );
+
+            if ( $i_type->allowHardQuotes() ) {
+                $match = $this->hardQuote?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->hardQuote( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowSoftQuotes() ) {
+                $match = $this->softQuote?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->softQuote( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowStrongCallbacks() ) {
+                $match = $this->strongCallback?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->strongCallback( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowWeakCallbacks() ) {
+                $match = $this->weakCallback?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->weakCallback( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowOpenCallbacks() ) {
+                $match = $this->openCallback?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->openCallback( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowEscapes() ) {
+                $match = $this->escape?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->escape( $match->stReplace, $match->stMatch );
+                    continue;
+                }
+            }
+
+            if ( $i_type->allowDelimiters() ) {
+                $match = $this->delimiter?->match( $stRest );
+                if ( $match instanceof Piece ) {
+                    $stRest = $match->stRest;
+                    yield from $this->delimiter( $match->stMatch );
+                    continue;
+                }
+            }
+
+            $stFirst = substr( $stRest, 0, 1 );
             $stRest = substr( $stRest, 1 );
+            yield new Segment( SegmentType::LITERAL, $stFirst, $stFirst );
+
         }
-        if ( '' !== $stUnquoted ) {
-            $r[] = new Piece( $stUnquoted, $stUnquoted, '', Segment::UNQUOTED );
-        }
-        return $r;
     }
 
 
-    protected function match( string $i_st ) : ?Piece {
-        foreach ( $this->operators as $operator ) {
-            $match = $operator->match( $i_st );
-            if ( $match !== null ) {
-                return $match;
-            }
-        }
-        return null;
+    protected function softQuote( string $i_stValue, string $i_stOriginal ) : \Generator {
+        $st = Segment::mergeValues( $this->parse( SegmentType::SOFT_QUOTED, $i_stValue ) );
+        yield new Segment( SegmentType::SOFT_QUOTED, $st, $i_stOriginal );
+    }
+
+
+    protected function strongCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
+        $st = Segment::mergeValues( $this->parse( SegmentType::STRONG_CALLBACK, $i_stValue ) );
+        $st = $this->fnStrong ? ( $this->fnStrong )( $st ) : $st;
+        yield new Segment( SegmentType::STRONG_CALLBACK, $st, $i_stOriginal );
+    }
+
+
+    protected function weakCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
+        $st = Segment::mergeValues( $this->parse( SegmentType::WEAK_CALLBACK, $i_stValue ) );
+        $st = $this->fnWeak ? ( $this->fnWeak )( $st ) : $st;
+        yield new Segment( SegmentType::WEAK_CALLBACK, $st, $i_stOriginal );
     }
 
 

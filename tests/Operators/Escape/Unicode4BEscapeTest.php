@@ -4,21 +4,23 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Tests\Escape;
+namespace JDWX\Quote\Tests\Operators\Escape;
 
 
-use JDWX\Quote\AbstractOperator;
-use JDWX\Quote\Escape\AbstractEscape;
-use JDWX\Quote\Escape\Unicode4BEscape;
-use JDWX\Quote\Segment;
+use JDWX\Quote\Operators\AbstractOperator;
+use JDWX\Quote\Operators\Escape\AbstractEscape;
+use JDWX\Quote\Operators\Escape\Unicode4BEscape;
+use JDWX\Quote\Tests\Helpers\OperatorTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+
+
+require_once __DIR__ . '/../../Helpers/OperatorTestCase.php';
 
 
 #[CoversClass( AbstractOperator::class )]
 #[CoversClass( AbstractEscape::class )]
 #[CoversClass( Unicode4BEscape::class )]
-final class Unicode4BEscapeTest extends TestCase {
+final class Unicode4BEscapeTest extends OperatorTestCase {
 
 
     public function testInvoke() : void {
@@ -36,20 +38,9 @@ final class Unicode4BEscapeTest extends TestCase {
     public function testMatch() : void {
         $unicode = new Unicode4BEscape();
         self::assertNull( $unicode->match( 'Foo' ) );
-
-        $match = $unicode->match( '\U+1F600' );
-        self::assertSame( '\U+1F600', $match->stMatch );
-        self::assertSame( '😀', $match->stReplace );
-        self::assertSame( '', $match->stRest );
-        self::assertSame( Segment::UNDEFINED, $match->segment );
-
-        $match = $unicode->match( '\U{1F600}' );
-        self::assertSame( '\U{1F600}', $match->stMatch );
-        self::assertSame( '😀', $match->stReplace );
-        self::assertSame( '', $match->stRest );
-        self::assertSame( Segment::UNDEFINED, $match->segment );
-
         self::assertNull( $unicode->match( 'Foo\U+1F600' ) );
+        self::assertPiece( '\U+1F600', '😀', '', $unicode->match( '\U+1F600' ) );
+        self::assertPiece( '\U{1F600}', '😀', '', $unicode->match( '\U{1F600}' ) );
     }
 
 

@@ -4,7 +4,7 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Escape;
+namespace JDWX\Quote\Operators\Escape;
 
 
 use JDWX\Quote\Piece;

@@ -4,13 +4,13 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote;
+namespace JDWX\Quote\Operators;
 
 
-class Delimiter extends AbstractOperator {
+use JDWX\Quote\Piece;
 
 
-    protected Segment $segmentDefault = Segment::DELIMITER;
+class DelimiterOperator extends AbstractOperator {
 
 
     public function __construct( private readonly array $rDelimiters = [ ' ', "\t", "\r", "\n" ] ) {}

@@ -4,22 +4,25 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Tests\Escape;
+namespace JDWX\Quote\Tests\Operators;
 
 
-use JDWX\Quote\AbstractOperator;
-use JDWX\Quote\Escape\AbstractEscape;
-use JDWX\Quote\Escape\HexEscape;
-use JDWX\Quote\Escape\OctalEscape;
-use JDWX\Quote\MultiOperator;
+use JDWX\Quote\Operators\AbstractOperator;
+use JDWX\Quote\Operators\Escape\AbstractEscape;
+use JDWX\Quote\Operators\Escape\HexEscape;
+use JDWX\Quote\Operators\Escape\OctalEscape;
+use JDWX\Quote\Operators\MultiOperator;
+use JDWX\Quote\Tests\Helpers\OperatorTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+
+
+require_once __DIR__ . '/../Helpers/OperatorTestCase.php';
 
 
 #[CoversClass( AbstractOperator::class )]
 #[CoversClass( AbstractEscape::class )]
 #[CoversClass( MultiOperator::class )]
-final class MultiEscapeTest extends TestCase {
+final class MultiOperatorTest extends OperatorTestCase {
 
 
     public function testInvoke() : void {

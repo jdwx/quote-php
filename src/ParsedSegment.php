@@ -7,10 +7,13 @@ declare( strict_types = 1 );
 namespace JDWX\Quote;
 
 
+use JDWX\Quote\Operators\MultiOperator;
+
+
 class ParsedSegment {
 
 
-    protected Segment $type;
+    protected SegmentType $type;
 
     protected string $textProcessed;
 
@@ -20,20 +23,20 @@ class ParsedSegment {
     private MultiOperator $escapes;
 
 
-    public function __construct( Segment $i_type, string $i_text ) {
+    public function __construct( SegmentType $i_type, string $i_text ) {
         $this->type = $i_type;
         $this->textProcessed = $i_text;
         $this->textOriginal = $i_text;
         $this->escapes = new MultiOperator( [
-            new Escape\ControlCharEscape(),
-            new Escape\OctalEscape(),
-            new Escape\Unicode2BEscape(),
-            new Escape\BackslashEscape(),
+            new Operators\Escape\ControlCharEscape(),
+            new Operators\Escape\OctalEscape(),
+            new Operators\Escape\Unicode2BEscape(),
+            new Operators\Escape\BackslashEscape(),
         ] );
     }
 
 
-    /** @return array<string, string|Segment> */
+    /** @return array<string, string|SegmentType> */
     public function debug() : array {
         return [
             'type' => $this->type,
@@ -45,27 +48,27 @@ class ParsedSegment {
 
     public function getOriginal( bool $i_bIncludeComments = false ) : string {
         return match ( $this->type ) {
-            Segment::DELIMITER, Segment::UNQUOTED => $this->textOriginal,
-            Segment::HARD_QUOTED => "'" . $this->textOriginal . "'",
-            Segment::SOFT_QUOTED => '"' . $this->textOriginal . '"',
-            Segment::CALLBACK_QUOTED => '`' . $this->textOriginal . '`',
-            Segment::COMMENT => $i_bIncludeComments ? '#' . $this->textOriginal : '',
+            SegmentType::DELIMITER, SegmentType::UNQUOTED => $this->textOriginal,
+            SegmentType::HARD_QUOTED => "'" . $this->textOriginal . "'",
+            SegmentType::SOFT_QUOTED => '"' . $this->textOriginal . '"',
+            SegmentType::STRONG_CALLBACK => '`' . $this->textOriginal . '`',
+            SegmentType::COMMENT => $i_bIncludeComments ? '#' . $this->textOriginal : '',
         };
     }
 
 
     public function getProcessed( bool $i_bIncludeQuotes = false ) : string {
         $txt = match ( $this->type ) {
-            Segment::DELIMITER, Segment::HARD_QUOTED, Segment::CALLBACK_QUOTED => $this->textProcessed,
-            Segment::UNQUOTED, Segment::SOFT_QUOTED => self::substEscapeSequences( $this->textProcessed ),
-            Segment::COMMENT => '',
+            SegmentType::DELIMITER, SegmentType::HARD_QUOTED, SegmentType::STRONG_CALLBACK => $this->textProcessed,
+            SegmentType::UNQUOTED, SegmentType::SOFT_QUOTED => self::substEscapeSequences( $this->textProcessed ),
+            SegmentType::COMMENT => '',
         };
         if ( $i_bIncludeQuotes ) {
-            if ( Segment::HARD_QUOTED === $this->type ) {
+            if ( SegmentType::HARD_QUOTED === $this->type ) {
                 $txt = "'" . $txt . "'";
-            } elseif ( Segment::SOFT_QUOTED === $this->type ) {
+            } elseif ( SegmentType::SOFT_QUOTED === $this->type ) {
                 $txt = '"' . $txt . '"';
-            } elseif ( Segment::CALLBACK_QUOTED === $this->type ) {
+            } elseif ( SegmentType::STRONG_CALLBACK === $this->type ) {
                 $txt = '`' . $txt . '`';
             }
         }
@@ -74,17 +77,17 @@ class ParsedSegment {
 
 
     public function isComment() : bool {
-        return Segment::COMMENT === $this->type;
+        return SegmentType::COMMENT === $this->type;
     }
 
 
     public function isDelimiter() : bool {
-        return Segment::DELIMITER === $this->type;
+        return SegmentType::DELIMITER === $this->type;
     }
 
 
     public function substBackQuotes( callable $i_fnCallback ) : void {
-        if ( Segment::CALLBACK_QUOTED !== $this->type ) {
+        if ( SegmentType::STRONG_CALLBACK !== $this->type ) {
             return;
         }
         $this->textProcessed = $i_fnCallback( $this->textProcessed );
@@ -98,7 +101,7 @@ class ParsedSegment {
 
     /** @param array<string, string> $i_rVariables */
     public function substVariables( array $i_rVariables ) : true|string {
-        if ( Segment::HARD_QUOTED === $this->type ) {
+        if ( SegmentType::HARD_QUOTED === $this->type ) {
             return true;
         }
         $bst = $this->substVariablesWithBraces( $i_rVariables );

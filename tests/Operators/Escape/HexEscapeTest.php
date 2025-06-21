@@ -4,20 +4,23 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Tests\Escape;
+namespace JDWX\Quote\Tests\Operators\Escape;
 
 
-use JDWX\Quote\AbstractOperator;
-use JDWX\Quote\Escape\AbstractEscape;
-use JDWX\Quote\Escape\HexEscape;
+use JDWX\Quote\Operators\AbstractOperator;
+use JDWX\Quote\Operators\Escape\AbstractEscape;
+use JDWX\Quote\Operators\Escape\HexEscape;
+use JDWX\Quote\Tests\Helpers\OperatorTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+
+
+require_once __DIR__ . '/../../Helpers/OperatorTestCase.php';
 
 
 #[CoversClass( AbstractOperator::class )]
 #[CoversClass( AbstractEscape::class )]
 #[CoversClass( HexEscape::class )]
-final class HexEscapeTest extends TestCase {
+final class HexEscapeTest extends OperatorTestCase {
 
 
     public function testInvoke() : void {

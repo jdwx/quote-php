@@ -4,22 +4,21 @@
 declare( strict_types = 1 );
 
 
-namespace JDWX\Quote\Tests;
+namespace JDWX\Quote\Tests\Operators;
 
 
 use JDWX\Quote\Exception;
-use JDWX\Quote\QuoteFilter;
-use JDWX\Quote\Segment;
+use JDWX\Quote\Operators\QuoteOperator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 
-#[CoversClass( QuoteFilter::class )]
-final class QuoteFilterTest extends TestCase {
+#[CoversClass( QuoteOperator::class )]
+final class QuoteOperatorTest extends TestCase {
 
 
     public function testBacktick() : void {
-        $quote = QuoteFilter::backtick();
+        $quote = QuoteOperator::backtick();
         self::assertSame( 'Foo', $quote( '`Foo`' ) );
         self::assertSame( 'FooBarBaz', $quote( 'Foo`Bar`Baz' ) );
         self::assertSame( "Foo'Bar'Baz", $quote( "Foo'Bar'Baz" ) );
@@ -27,7 +26,7 @@ final class QuoteFilterTest extends TestCase {
 
 
     public function testDouble() : void {
-        $quote = QuoteFilter::double();
+        $quote = QuoteOperator::double();
         self::assertSame( 'Foo', $quote( '"Foo"' ) );
         self::assertSame( 'FooBarBaz', $quote( 'Foo"Bar"Baz' ) );
         self::assertSame( "Foo'Bar'Baz", $quote( "Foo'Bar'Baz" ) );
@@ -35,14 +34,14 @@ final class QuoteFilterTest extends TestCase {
 
 
     public function testInvoke() : void {
-        $quote = QuoteFilter::single();
+        $quote = QuoteOperator::single();
         self::assertSame( 'Foo', $quote( 'Foo' ) );
         self::assertSame( 'FooBarBaz', $quote( "Foo'Bar'Baz" ) );
     }
 
 
     public function testInvokeForCustomQuotes() : void {
-        $quote = new QuoteFilter( Segment::HARD_QUOTED, '<<<', '>>>' );
+        $quote = new QuoteOperator( '<<<', '>>>' );
         self::assertSame( 'Foo', $quote( '<<<Foo>>>' ) );
         self::assertSame( 'FooBarBaz', $quote( 'Foo<<<Bar>>>Baz' ) );
         self::assertSame( 'FooBarBaz', $quote( '<<<Foo>>>Bar<<<Baz>>>' ) );
@@ -50,7 +49,7 @@ final class QuoteFilterTest extends TestCase {
 
 
     public function testMatch() : void {
-        $quote = QuoteFilter::single( i_bIgnoreUnclosed: true );
+        $quote = QuoteOperator::single( i_bIgnoreUnclosed: true );
         $match = $quote->match( 'Foo' );
         self::assertNull( $match );
 
@@ -69,14 +68,14 @@ final class QuoteFilterTest extends TestCase {
 
         self::assertNull( $quote->match( "'Foo" ) );
 
-        $quote = QuoteFilter::single();
+        $quote = QuoteOperator::single();
         self::expectException( Exception::class );
         $quote->match( "'Foo" );
     }
 
 
     public function testMatchForCustomQuotes() : void {
-        $quote = new QuoteFilter( Segment::HARD_QUOTED, '<<<', '>>>' );
+        $quote = new QuoteOperator( '<<<', '>>>' );
         $match = $quote->match( '<<<Foo>>>Bar' );
         self::assertSame( '<<<Foo>>>', $match->stMatch );
         self::assertSame( 'Foo', $match->stReplace );
