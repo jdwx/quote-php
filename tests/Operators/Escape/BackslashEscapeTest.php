@@ -37,14 +37,10 @@ final class BackslashEscapeTest extends OperatorTestCase {
         self::assertNull( $backslash->match( 'Foo' ) );
 
         $match = $backslash->match( '\Bar' );
-        self::assertSame( '\\B', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( 'ar', $match->stRest );
+        self::assertPiece( '\B', 'B', 'ar', $match );
 
         $match = $backslash->match( '\\\\Baz!' );
-        self::assertSame( '\\\\', $match->stMatch );
-        self::assertSame( '\\', $match->stReplace );
-        self::assertSame( 'Baz!', $match->stRest );
+        self::assertPiece( '\\\\', '\\', 'Baz!', $match );
     }
 
 

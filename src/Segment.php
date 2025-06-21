@@ -47,9 +47,39 @@ readonly class Segment {
     }
 
 
+    /**
+     * @param iterable<Segment> $i_segments
+     * @return iterable<Segment>
+     */
+    public static function dropComments( iterable $i_segments ) : iterable {
+        yield from self::dropType( $i_segments, SegmentType::COMMENT );
+    }
+
+
+    /**
+     * @param iterable<Segment> $i_segments
+     * @return iterable<Segment>
+     */
     public static function dropDelimiters( iterable $i_segments ) : iterable {
         foreach ( $i_segments as $segment ) {
             if ( $segment->type !== SegmentType::DELIMITER ) {
+                yield $segment;
+            }
+        }
+    }
+
+
+    /**
+     * @param iterable<Segment> $i_segments
+     * @param list<SegmentType>|SegmentType $i_type
+     * @return iterable<Segment>
+     */
+    public static function dropType( iterable $i_segments, array|SegmentType $i_type ) : iterable {
+        if ( ! is_array( $i_type ) ) {
+            $i_type = [ $i_type ];
+        }
+        foreach ( $i_segments as $segment ) {
+            if ( ! in_array( $segment->type, $i_type, true ) ) {
                 yield $segment;
             }
         }
@@ -69,10 +99,30 @@ readonly class Segment {
     /** @param iterable<Segment> $i_segments */
     public static function mergeValues( iterable $i_segments ) : string {
         $st = '';
-        foreach ( $i_segments as $segment ) {
+        foreach ( self::coalesce( self::dropComments( $i_segments ) ) as $segment ) {
             $st .= $segment->value;
         }
         return $st;
+    }
+
+
+    /**
+     * @param iterable<Segment> $i_segments
+     * @return iterable<Segment>
+     */
+    public static function simplify( iterable $i_segments ) : iterable {
+        yield from self::dropType( self::coalesce( $i_segments ), [ SegmentType::COMMENT, SegmentType::DELIMITER ] );
+    }
+
+
+    /**
+     * @param iterable<Segment> $i_segments
+     * @return iterable<string>
+     */
+    public static function values( iterable $i_segments ) : iterable {
+        foreach ( $i_segments as $segment ) {
+            yield $segment->value;
+        }
     }
 
 

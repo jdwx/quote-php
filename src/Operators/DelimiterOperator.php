@@ -13,7 +13,16 @@ use JDWX\Quote\Piece;
 class DelimiterOperator extends AbstractOperator {
 
 
-    public function __construct( private readonly array $rDelimiters = [ ' ', "\t", "\r", "\n" ] ) {}
+    protected const WHITESPACE_DELIMITERS = [ ' ', "\t", "\r", "\n" ];
+
+
+    /** @param list<string> $rDelimiters */
+    public function __construct( private readonly array $rDelimiters ) {}
+
+
+    public static function whitespace() : self {
+        return new self( self::WHITESPACE_DELIMITERS );
+    }
 
 
     public function match( string $i_st ) : ?Piece {

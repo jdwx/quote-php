@@ -25,50 +25,6 @@ use PHPUnit\Framework\TestCase;
 final class ParserTest extends TestCase {
 
 
-    /*
-    public function testInvoke() : void {
-        $parser = new Parser( [ QuoteFilter::double(), new Delimiter() ] );
-        $r = $parser( 'Foo' );
-        self::assertSame( 1, count( $r ) );
-        self::assertSame( 'Foo', $r[ 0 ]->stMatch );
-        self::assertSame( 'Foo', $r[ 0 ]->stReplace );
-        self::assertSame( '', $r[ 0 ]->stRest );
-        self::assertSame( SegmentType::UNQUOTED, $r[ 0 ]->segment );
-
-        $r = $parser( 'Foo  "Bar Baz"' );
-        self::assertSame( 3, count( $r ) );
-        self::assertSame( 'Foo', $r[ 0 ]->stMatch );
-        self::assertSame( 'Foo', $r[ 0 ]->stReplace );
-        self::assertSame( '  "Bar Baz"', $r[ 0 ]->stRest );
-        self::assertSame( SegmentType::UNQUOTED, $r[ 0 ]->segment );
-
-        self::assertSame( '  ', $r[ 1 ]->stMatch );
-        self::assertSame( '  ', $r[ 1 ]->stReplace );
-        self::assertSame( '"Bar Baz"', $r[ 1 ]->stRest );
-        self::assertSame( SegmentType::DELIMITER, $r[ 1 ]->segment );
-
-        self::assertSame( '"Bar Baz"', $r[ 2 ]->stMatch );
-        self::assertSame( 'Bar Baz', $r[ 2 ]->stReplace );
-        self::assertSame( '', $r[ 2 ]->stRest );
-        self::assertSame( SegmentType::SOFT_QUOTED, $r[ 2 ]->segment );
-    }
-
-
-    public function testInvokeForComplexParser() : void {
-        $parser = new Parser( [
-            QuoteFilter::single(),
-            QuoteFilter::double(),
-            QuoteFilter::backtick(),
-            new Delimiter(),
-        ] );
-
-        $r = $parser( 'Foo "Bar `Baz` Qux" \'Quux `Corge` "Grault" Garply\'' );
-        self::assertCount( 5, $r );
-        var_dump( $r );
-    }
-    */
-
-
     public static function assertSegment( SegmentType $i_type, string $i_value, string $i_original,
                                           Segment     $i_segment ) : void {
         self::assertSame( $i_type, $i_segment->type, 'type mismatch' );
@@ -77,14 +33,13 @@ final class ParserTest extends TestCase {
     }
 
 
-    public function testNull() : void {
-        $parser = new Parser();
-        $st = 'Foo "Bar" \'Baz\' ${Qux} `Quux` Garply';
-        $r = iterator_to_array( $parser( $st ) );
-        self::assertCount( strlen( $st ), $r );
-        $r = iterator_to_array( Segment::coalesce( $r ) );
-        self::assertCount( 1, $r );
-        self::assertSegment( SegmentType::LITERAL, $st, $st, $r[ 0 ] );
+    public static function testInvoke() : void {
+        $parser = new Parser(
+            hardQuote: QuoteOperator::double(),
+            delimiter: DelimiterOperator::whitespace(),
+        );
+        $st = 'Foo "Bar Baz" Qux';
+        self::assertSame( [ 'Foo', 'Bar Baz', 'Qux' ], iterator_to_array( $parser( $st ) ) );
     }
 
 
@@ -92,7 +47,7 @@ final class ParserTest extends TestCase {
         $comment = new QuoteOperator( '/*', '*/' );
         $parser = new Parser( comment: $comment );
         $st = 'Foo /* Bar */ Baz /* Qux */ Garply';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ), false );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 5, $r );
 
         self::assertSegment( SegmentType::LITERAL, 'Foo ', 'Foo ', $r[ 0 ] );
@@ -106,7 +61,7 @@ final class ParserTest extends TestCase {
     public function testParseForComplex() : void {
         $parser = $this->makeComplexParser();
         $st = 'Foo /* Bar "Baz" */ "$foo $baz" ${foo} `qux ${foo} ${baz} qux` \'quux\'';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 11, $r );
         self::assertSegment( SegmentType::LITERAL, 'Foo', 'Foo', $r[ 0 ] );
         self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 1 ] );
@@ -123,11 +78,11 @@ final class ParserTest extends TestCase {
 
 
     public function testParseForDelimiter() : void {
-        $delimiter = new DelimiterOperator();
+        $delimiter = DelimiterOperator::whitespace();
         $softQuote = new QuoteOperator( '"', '"' );
         $parser = new Parser( softQuote: $softQuote, delimiter: $delimiter );
         $st = 'Foo "Bar Baz"   Qux';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertSegment( SegmentType::LITERAL, 'Foo', 'Foo', $r[ 0 ] );
         self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 1 ] );
         self::assertSegment( SegmentType::SOFT_QUOTED, 'Bar Baz', '"Bar Baz"', $r[ 2 ] );
@@ -141,7 +96,7 @@ final class ParserTest extends TestCase {
         $escape = new ControlCharEscape();
         $parser = new Parser( escape: $escape );
         $st = 'Foo \n Bar \t Baz \r Qux';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 1, $r );
         $segment = $r[ 0 ];
         assert( $segment instanceof Segment );
@@ -155,7 +110,7 @@ final class ParserTest extends TestCase {
         $escape = new ControlCharEscape();
         $parser = new Parser( hardQuote: $hardQuote, escape: $escape );
         $st = "Foo 'Bar' Baz 'Qux \\n Quux' \\n Corge";
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 5, $r );
 
         self::assertSegment( SegmentType::LITERAL, 'Foo ', 'Foo ', $r[ 0 ] );
@@ -163,6 +118,17 @@ final class ParserTest extends TestCase {
         self::assertSegment( SegmentType::LITERAL, ' Baz ', ' Baz ', $r[ 2 ] );
         self::assertSegment( SegmentType::HARD_QUOTED, 'Qux \n Quux', "'Qux \\n Quux'", $r[ 3 ] );
         self::assertSegment( SegmentType::LITERAL, " \n Corge", ' \n Corge', $r[ 4 ] );
+    }
+
+
+    public function testParseForNoOperators() : void {
+        $parser = new Parser();
+        $st = 'Foo "Bar" \'Baz\' ${Qux} `Quux` Garply';
+        $r = iterator_to_array( $parser->parse( $st ) );
+        self::assertCount( strlen( $st ), $r );
+        $r = iterator_to_array( Segment::coalesce( $r ) );
+        self::assertCount( 1, $r );
+        self::assertSegment( SegmentType::LITERAL, $st, $st, $r[ 0 ] );
     }
 
 
@@ -174,7 +140,7 @@ final class ParserTest extends TestCase {
         $parser = new Parser( hardQuote: $hardQuote, softQuote: $softQuote,
             strongCallback: $strongCallback, escape: $escape );
         $st = 'Foo `Bar` Baz `\'Qux\' \n "Quux"` \n Corge';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 5, $r );
 
         self::assertSegment( SegmentType::LITERAL, 'Foo ', 'Foo ', $r[ 0 ] );
@@ -196,7 +162,7 @@ final class ParserTest extends TestCase {
         $parser = new Parser( strongCallback: $strongCallback, weakCallback: $weakCallback, fnStrong: $fnStrong,
             fnWeak: $vars );
         $st = '`Bar ${foo} Baz ${qux}`';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertSegment( SegmentType::STRONG_CALLBACK, '>>>Bar bar Baz <<<', '`Bar ${foo} Baz ${qux}`', $r[ 0 ] );
         self::assertCount( 1, $r );
     }
@@ -207,7 +173,7 @@ final class ParserTest extends TestCase {
         $escape = new ControlCharEscape();
         $parser = new Parser( softQuote: $softQuote, escape: $escape );
         $st = 'Foo "Bar" Baz "Qux \n Quux" \n Corge';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 5, $r );
 
         self::assertSegment( SegmentType::LITERAL, 'Foo ', 'Foo ', $r[ 0 ] );
@@ -223,7 +189,7 @@ final class ParserTest extends TestCase {
         $escape = new ControlCharEscape();
         $parser = new Parser( weakCallback: $weakCallback, escape: $escape );
         $st = 'Foo ${Bar} Baz ${Qux \n Quux} \n Corge';
-        $r = iterator_to_array( Segment::coalesce( $parser( $st ) ) );
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
         self::assertCount( 5, $r );
 
         self::assertSegment( SegmentType::LITERAL, 'Foo ', 'Foo ', $r[ 0 ] );
@@ -235,17 +201,17 @@ final class ParserTest extends TestCase {
 
 
     private function makeComplexParser() : Parser {
-        $comment = new QuoteOperator( '/*', '*/' );
-        $hardQuote = new QuoteOperator( "'", "'" );
-        $softQuote = new QuoteOperator( '"', '"' );
-        $strongCallback = new QuoteOperator( '`', '`' );
-        $weakCallback = new QuoteOperator( '${', '}' );
-        $openCallback = new OpenEndedOperator();
+        $comment = QuoteOperator::comment();
+        $hardQuote = QuoteOperator::single();
+        $softQuote = QuoteOperator::double();
+        $strongCallback = QuoteOperator::backtick();
+        $weakCallback = QuoteOperator::varCurly();
+        $openCallback = OpenEndedOperator::var();
         $escape = new MultiOperator( [
             new HexEscape(),
             new ControlCharEscape(),
         ] );
-        $delimiter = new DelimiterOperator();
+        $delimiter = DelimiterOperator::whitespace();
         $fnBacktick = function ( string $i_stValue ) : string {
             return strtoupper( $i_stValue );
         };

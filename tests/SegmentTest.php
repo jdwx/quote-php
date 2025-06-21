@@ -72,6 +72,18 @@ final class SegmentTest extends TestCase {
     }
 
 
+    public function testDropComments() : void {
+        $s1 = new Segment( SegmentType::LITERAL, 'Foo', 'Foo' );
+        $s2 = new Segment( SegmentType::COMMENT, 'Bar', 'Bar' );
+        $s3 = new Segment( SegmentType::LITERAL, 'Baz', 'Baz' );
+        $s4 = new Segment( SegmentType::DELIMITER, 'Qux', 'Qux' );
+        $s5 = new Segment( SegmentType::SOFT_QUOTED, 'Grault', 'Grault' );
+        $r = [ $s1, $s2, $s3, $s4, $s5 ];
+        $r = iterator_to_array( Segment::dropComments( $r ) );
+        self::assertSame( [ $s1, $s3, $s4, $s5 ], $r );
+    }
+
+
     public function testDropDelimiters() : void {
         $s1 = new Segment( SegmentType::LITERAL, 'Foo', 'Foo' );
         $s2 = new Segment( SegmentType::DELIMITER, 'Bar', 'Bar' );
@@ -118,6 +130,29 @@ final class SegmentTest extends TestCase {
 
         $r = Segment::mergeValues( [ $s1, $s2, $s3, $s4 ] );
         self::assertSame( 'FooBazQuuxGrault', $r );
+    }
+
+
+    public function testSimplify() : void {
+        $s1 = new Segment( SegmentType::LITERAL, 'Foo', 'Foo' );
+        $s2 = new Segment( SegmentType::LITERAL, 'Bar', 'Bar' );
+        $s3 = new Segment( SegmentType::DELIMITER, 'Baz', 'Baz' );
+        $s4 = new Segment( SegmentType::LITERAL, 'Qux', 'Qux' );
+        $s5 = new Segment( SegmentType::COMMENT, 'Grault', 'Grault' );
+        $s6 = new Segment( SegmentType::LITERAL, 'Garply', 'Garply' );
+
+        $r = iterator_to_array( Segment::simplify( [ $s1, $s2, $s3, $s4, $s5, $s6 ] ) );
+        self::assertCount( 3, $r );
+        self::assertSame( [ 'FooBar', 'Qux', 'Garply' ], iterator_to_array( Segment::values( $r ) ) );
+    }
+
+
+    public function testValues() : void {
+        $s1 = new Segment( SegmentType::LITERAL, 'Foo', 'Bar' );
+        $s2 = new Segment( SegmentType::LITERAL, 'Baz', 'Qux' );
+        $s3 = new Segment( SegmentType::DELIMITER, 'Quux', 'Corge' );
+
+        self::assertSame( [ 'Foo', 'Baz', 'Quux' ], iterator_to_array( Segment::values( [ $s1, $s2, $s3 ] ) ) );
     }
 
 

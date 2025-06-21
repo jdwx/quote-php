@@ -24,7 +24,7 @@ class Unicode2BEscape extends AbstractEscape {
 
     protected function replace( string $i_stMatch ) : string {
         $i_stMatch = substr( $i_stMatch, 2 ); // Remove the leading \U or \u
-        return OK::mb_convert_encoding( pack( 'H*', $i_stMatch ), 'UTF-8', 'UCS-2BE' );
+        return OK::mb_convert_encoding_string( pack( 'H*', $i_stMatch ), 'UTF-8', 'UCS-2BE' );
     }
 
 

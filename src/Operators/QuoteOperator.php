@@ -29,13 +29,36 @@ class QuoteOperator extends AbstractOperator {
     }
 
 
+    public static function comment( bool $i_bIgnoreUnclosed = false ) : self {
+        return new self( '/*', '*/', $i_bIgnoreUnclosed );
+    }
+
+
     public static function double( bool $i_bIgnoreUnclosed = false ) : self {
         return new self( '"', null, $i_bIgnoreUnclosed );
     }
 
 
+    public static function simple( bool $i_bIgnoreUnclosed = false ) : MultiOperator {
+        return new MultiOperator( [
+            QuoteOperator::single( $i_bIgnoreUnclosed ),
+            QuoteOperator::double( $i_bIgnoreUnclosed ),
+        ] );
+    }
+
+
     public static function single( bool $i_bIgnoreUnclosed = false ) : self {
         return new self( "'", null, $i_bIgnoreUnclosed );
+    }
+
+
+    public static function varCurly( bool $i_bIgnoreUnclosed = false ) : self {
+        return new self( '${', '}', $i_bIgnoreUnclosed );
+    }
+
+
+    public static function varParen( bool $i_bIgnoreUnclosed = false ) : self {
+        return new self( '$(', ')', $i_bIgnoreUnclosed );
     }
 
 

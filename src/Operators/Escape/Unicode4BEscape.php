@@ -33,7 +33,7 @@ class Unicode4BEscape extends AbstractEscape {
             $i_stMatch = substr( $i_stMatch, 1, -1 ); // Remove the surrounding {}
         }
         $i_stMatch = str_pad( $i_stMatch, 8, '0', STR_PAD_LEFT ); // Pad to 8 characters
-        return OK::mb_convert_encoding( pack( 'H*', $i_stMatch ), 'UTF-8', 'UCS-4BE' );
+        return OK::mb_convert_encoding_string( pack( 'H*', $i_stMatch ), 'UTF-8', 'UCS-4BE' );
     }
 
 

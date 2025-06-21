@@ -17,6 +17,6 @@ interface OperatorInterface {
 
 
     public function match( string $i_st ) : ?Piece;
-    
+
 
 }

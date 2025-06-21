@@ -15,7 +15,8 @@ abstract class OperatorTestCase extends TestCase {
 
 
     protected static function assertPiece( string $i_stMatch, string $i_stReplace,
-                                           string $i_stRest, Piece $i_piece ) : void {
+                                           string $i_stRest, ?Piece $i_piece ) : void {
+        assert( $i_piece instanceof Piece );
         self::assertSame( $i_stMatch, $i_piece->stMatch, 'match mismatch' );
         self::assertSame( $i_stReplace, $i_piece->stReplace, 'replace mismatch' );
         self::assertSame( $i_stRest, $i_piece->stRest, 'rest mismatch' );

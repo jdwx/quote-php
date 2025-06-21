@@ -50,11 +50,7 @@ final class MultiOperatorTest extends OperatorTestCase {
             new OctalEscape(),
         ] );
         self::assertNull( $escapes->match( 'Foo' ) );
-
-        $match = $escapes->match( '\x42Foo' );
-        self::assertSame( '\x42', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( 'Foo', $match->stRest );
+        self::assertPiece( '\x42', 'B', 'Foo', $escapes->match( '\x42Foo' ) );
     }
 
 

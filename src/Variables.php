@@ -10,6 +10,7 @@ namespace JDWX\Quote;
 readonly class Variables {
 
 
+    /** @param array<string, string> $rVariables */
     public function __construct( private array $rVariables ) {}
 
 

@@ -23,7 +23,7 @@ class HexEscape extends AbstractEscape {
 
     protected function replace( string $i_stMatch ) : string {
         $i_stMatch = substr( $i_stMatch, 2 ); // Remove the '\x' prefix
-        return chr( hexdec( $i_stMatch ) );
+        return chr( intval( hexdec( $i_stMatch ) ) );
     }
 
 

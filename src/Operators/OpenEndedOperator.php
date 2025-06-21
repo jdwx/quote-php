@@ -9,6 +9,7 @@ namespace JDWX\Quote\Operators;
 
 use JDWX\Quote\Piece;
 use JDWX\Strict\OK;
+use JDWX\Strict\TypeIs;
 
 
 class OpenEndedOperator extends AbstractOperator {
@@ -19,8 +20,13 @@ class OpenEndedOperator extends AbstractOperator {
     private readonly string $reName;
 
 
-    public function __construct( private readonly string $stStart = '$', ?string $i_nreName = null ) {
+    public function __construct( private readonly string $stStart, ?string $i_nreName = null ) {
         $this->reName = $i_nreName ?? self::DEFAULT_NAME_REGEX;
+    }
+
+
+    public static function var( ?string $i_nreName = null ) : self {
+        return new self( '$', $i_nreName );
     }
 
 
@@ -47,7 +53,9 @@ class OpenEndedOperator extends AbstractOperator {
         if ( ! OK::preg_match( $this->reName, $i_st, $matches ) ) {
             return null;
         }
-        return $matches[ 0 ];
+        /** @phpstan-ignore-next-line */
+        assert( is_array( $matches ) );
+        return TypeIs::string( $matches[ 0 ] );
     }
 
 

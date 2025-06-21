@@ -18,6 +18,7 @@ class MultiOperator extends AbstractEscape {
     private array $escapes;
 
 
+    /** @param list<OperatorInterface>|OperatorInterface $i_escapes */
     public function __construct( array|OperatorInterface $i_escapes ) {
         if ( ! is_array( $i_escapes ) ) {
             $i_escapes = [ $i_escapes ];

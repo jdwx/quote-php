@@ -34,15 +34,8 @@ final class HexEscapeTest extends OperatorTestCase {
     public function testMatch() : void {
         $hex = new HexEscape();
         self::assertNull( $hex->match( 'Foo' ) );
-        $match = $hex->match( '\x41' );
-        self::assertSame( '\x41', $match->stMatch );
-        self::assertSame( 'A', $match->stReplace );
-        self::assertSame( '', $match->stRest );
-
-        $match = $hex->match( '\x42!' );
-        self::assertSame( '\x42', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( '!', $match->stRest );
+        self::assertPiece( '\x41', 'A', '', $hex->match( '\x41' ) );
+        self::assertPiece( '\x42', 'B', '!', $hex->match( '\x42!' ) );
     }
 
 

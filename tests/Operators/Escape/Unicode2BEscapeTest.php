@@ -35,15 +35,8 @@ final class Unicode2BEscapeTest extends OperatorTestCase {
         $unicode = new Unicode2BEscape();
         self::assertNull( $unicode->match( 'Foo' ) );
 
-        $match = $unicode->match( '\u0042' );
-        self::assertSame( '\u0042', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( '', $match->stRest );
-
-        $match = $unicode->match( '\U0042ar' );
-        self::assertSame( '\U0042', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( 'ar', $match->stRest );
+        self::assertPiece( '\u0042', 'B', '', $unicode->match( '\u0042' ) );
+        self::assertPiece( '\U0042', 'B', 'ar', $unicode->match( '\U0042ar' ) );
     }
 
 

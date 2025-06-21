@@ -34,16 +34,8 @@ final class OctalEscapeTest extends OperatorTestCase {
     public function testMatch() : void {
         $octal = new OctalEscape();
         self::assertNull( $octal->match( 'Foo' ) );
-
-        $match = $octal->match( '\141' );
-        self::assertSame( '\141', $match->stMatch );
-        self::assertSame( 'a', $match->stReplace );
-        self::assertSame( '', $match->stRest );
-
-        $match = $octal->match( '\102!' );
-        self::assertSame( '\102', $match->stMatch );
-        self::assertSame( 'B', $match->stReplace );
-        self::assertSame( '!', $match->stRest );
+        self::assertPiece( '\141', 'a', '', $octal->match( '\141' ) );
+        self::assertPiece( '\102', 'B', '!', $octal->match( '\102!' ) );
     }
 
 

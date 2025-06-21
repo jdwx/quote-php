@@ -18,7 +18,7 @@ class OpenEndedOperatorTest extends OperatorTestCase {
 
 
     public function testMatch() : void {
-        $op = new OpenEndedOperator();
+        $op = OpenEndedOperator::var();
         self::assertNull( $op->match( 'Foo' ) );
         self::assertPiece( '$foo', 'foo', ' bar', $op->match( '$foo bar' ) );
         self::assertNull( $op->match( '$ nope' ) );
@@ -27,7 +27,7 @@ class OpenEndedOperatorTest extends OperatorTestCase {
 
 
     public function testMatchWithName() : void {
-        $op = new class() extends OpenEndedOperator {
+        $op = new class( '$' ) extends OpenEndedOperator {
 
 
             protected function matchName( string $i_st ) : ?string {

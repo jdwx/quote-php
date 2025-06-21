@@ -42,9 +42,17 @@ readonly class Parser {
     }
 
 
-    /** @return iterable<Segment> */
+    /** @return iterable<string> */
     public function __invoke( string $i_st ) : iterable {
-        return $this->parse( SegmentType::UNDEFINED, $i_st );
+        return Segment::values( Segment::simplify( $this->parse( $i_st ) ) );
+    }
+
+
+    public function parse( string $i_st ) : \Generator {
+        # Iterate over this to make sure the keys are consecutive integers.
+        foreach ( $this->parseSegment( SegmentType::UNDEFINED, $i_st ) as $segment ) {
+            yield $segment;
+        }
     }
 
 
@@ -53,13 +61,13 @@ readonly class Parser {
     }
 
 
-    protected function delimiter( string $i_stValue ) : \Generator {
-        yield new Segment( SegmentType::DELIMITER, $i_stValue, $i_stValue );
+    protected function delimiter( string $i_stValue, string $i_stOriginal ) : \Generator {
+        yield new Segment( SegmentType::DELIMITER, $i_stValue, $i_stOriginal );
     }
 
 
     protected function escape( string $i_stValue, string $i_stOriginal ) : \Generator {
-        $st = Segment::mergeValues( $this->parse( SegmentType::ESCAPE, $i_stValue ) );
+        $st = Segment::mergeValues( $this->parseSegment( SegmentType::ESCAPE, $i_stValue ) );
         yield new Segment( SegmentType::LITERAL, $st, $i_stOriginal );
     }
 
@@ -70,13 +78,13 @@ readonly class Parser {
 
 
     protected function openCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
-        $st = Segment::mergeValues( $this->parse( SegmentType::OPEN_CALLBACK, $i_stValue ) );
+        $st = Segment::mergeValues( $this->parseSegment( SegmentType::OPEN_CALLBACK, $i_stValue ) );
         $st = $this->fnOpen ? ( $this->fnOpen )( $st ) : $st;
         yield new Segment( SegmentType::OPEN_CALLBACK, $st, $i_stOriginal );
     }
 
 
-    protected function parse( SegmentType $i_type, string $i_st ) : \Generator {
+    protected function parseSegment( SegmentType $i_type, string $i_st ) : \Generator {
         $stRest = $i_st;
         while ( '' !== $stRest ) {
 
@@ -147,7 +155,7 @@ readonly class Parser {
                 $match = $this->delimiter?->match( $stRest );
                 if ( $match instanceof Piece ) {
                     $stRest = $match->stRest;
-                    yield from $this->delimiter( $match->stMatch );
+                    yield from $this->delimiter( $match->stReplace, $match->stMatch );
                     continue;
                 }
             }
@@ -161,20 +169,20 @@ readonly class Parser {
 
 
     protected function softQuote( string $i_stValue, string $i_stOriginal ) : \Generator {
-        $st = Segment::mergeValues( $this->parse( SegmentType::SOFT_QUOTED, $i_stValue ) );
+        $st = Segment::mergeValues( $this->parseSegment( SegmentType::SOFT_QUOTED, $i_stValue ) );
         yield new Segment( SegmentType::SOFT_QUOTED, $st, $i_stOriginal );
     }
 
 
     protected function strongCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
-        $st = Segment::mergeValues( $this->parse( SegmentType::STRONG_CALLBACK, $i_stValue ) );
+        $st = Segment::mergeValues( $this->parseSegment( SegmentType::STRONG_CALLBACK, $i_stValue ) );
         $st = $this->fnStrong ? ( $this->fnStrong )( $st ) : $st;
         yield new Segment( SegmentType::STRONG_CALLBACK, $st, $i_stOriginal );
     }
 
 
     protected function weakCallback( string $i_stValue, string $i_stOriginal ) : \Generator {
-        $st = Segment::mergeValues( $this->parse( SegmentType::WEAK_CALLBACK, $i_stValue ) );
+        $st = Segment::mergeValues( $this->parseSegment( SegmentType::WEAK_CALLBACK, $i_stValue ) );
         $st = $this->fnWeak ? ( $this->fnWeak )( $st ) : $st;
         yield new Segment( SegmentType::WEAK_CALLBACK, $st, $i_stOriginal );
     }
