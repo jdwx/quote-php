@@ -121,6 +121,38 @@ final class ParserTest extends TestCase {
     }
 
 
+    public function testParseForHardQuoteMultiple() : void {
+        $hardQuote = QuoteOperator::double();
+        $delimiter = DelimiterOperator::whitespace();
+        $parser = new Parser( hardQuote: $hardQuote, delimiter: $delimiter );
+        $st = 'Foo "Bar" "Baz" "Qux"';
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
+        self::assertSegment( SegmentType::LITERAL, 'Foo', 'Foo', $r[ 0 ] );
+        self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 1 ] );
+        self::assertSegment( SegmentType::HARD_QUOTED, 'Bar', '"Bar"', $r[ 2 ] );
+        self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 3 ] );
+        self::assertSegment( SegmentType::HARD_QUOTED, 'Baz', '"Baz"', $r[ 4 ] );
+        self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 5 ] );
+        self::assertSegment( SegmentType::HARD_QUOTED, 'Qux', '"Qux"', $r[ 6 ] );
+        self::assertCount( 7, $r );
+    }
+
+
+    public function testParseForHardQuoteMultiple2() : void {
+        $hardQuote = QuoteOperator::double();
+        $delimiter = DelimiterOperator::whitespace();
+        $parser = new Parser( hardQuote: $hardQuote, delimiter: $delimiter );
+        $st = '"" "Foo" ""';
+        $r = iterator_to_array( Segment::coalesce( $parser->parse( $st ) ) );
+        self::assertSegment( SegmentType::HARD_QUOTED, '', '""', $r[ 0 ] );
+        self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 1 ] );
+        self::assertSegment( SegmentType::HARD_QUOTED, 'Foo', '"Foo"', $r[ 2 ] );
+        self::assertSegment( SegmentType::DELIMITER, ' ', ' ', $r[ 3 ] );
+        self::assertSegment( SegmentType::HARD_QUOTED, '', '""', $r[ 4 ] );
+        self::assertCount( 5, $r );
+    }
+
+
     public function testParseForNoOperators() : void {
         $parser = new Parser();
         $st = 'Foo "Bar" \'Baz\' ${Qux} `Quux` Garply';

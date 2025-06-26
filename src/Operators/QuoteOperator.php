@@ -71,7 +71,7 @@ class QuoteOperator extends AbstractOperator {
         $bDone = false;
 
         while ( false !== ( $uPos = mb_strpos( $stRest, $this->stClose ) ) ) {
-            if ( 0 === $uPos || mb_substr( $stRest, $uPos - 1, 1 ) === '\\' ) {
+            if ( 0 !== $uPos && mb_substr( $stRest, $uPos - 1, 1 ) === '\\' ) {
                 // This is an escaped close quote.
                 $st = mb_substr( $stRest, 0, $uPos - 1 );
                 $stMatch .= $st . '\\' . $this->stClose;
