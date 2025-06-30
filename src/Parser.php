@@ -42,12 +42,19 @@ readonly class Parser {
     }
 
 
-    /** @return iterable<string> */
+    /**
+     * @return iterable<string>
+     * @throws Exception
+     */
     public function __invoke( string $i_st ) : iterable {
         return Segment::values( Segment::simplify( $this->parse( $i_st ) ) );
     }
 
 
+    /**
+     * @return \Generator<int, Segment>
+     * @throws Exception
+     */
     public function parse( string $i_st ) : \Generator {
         # Iterate over this to make sure the keys are consecutive integers.
         foreach ( $this->parseSegment( SegmentType::UNDEFINED, $i_st ) as $segment ) {
@@ -84,6 +91,12 @@ readonly class Parser {
     }
 
 
+    /**
+     * @param SegmentType $i_type
+     * @param string $i_st
+     * @return \Generator<Segment>
+     * @throws Exception
+     */
     protected function parseSegment( SegmentType $i_type, string $i_st ) : \Generator {
         $stRest = $i_st;
         while ( '' !== $stRest ) {

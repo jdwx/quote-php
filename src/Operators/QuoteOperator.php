@@ -62,6 +62,11 @@ class QuoteOperator extends AbstractOperator {
     }
 
 
+    /**
+     * @param string $i_st
+     * @return Piece|null
+     * @throws Exception
+     */
     public function match( string $i_st ) : ?Piece {
         if ( ! str_starts_with( $i_st, $this->stOpen ) ) {
             return null;
