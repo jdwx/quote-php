@@ -10,7 +10,7 @@ namespace JDWX\Quote;
 use JDWX\Quote\Operators\OperatorInterface;
 
 
-readonly class Parser {
+readonly class Parser implements ParserInterface {
 
 
     /** @var (callable( string ) : string)|null */
@@ -93,7 +93,7 @@ readonly class Parser {
 
     /**
      * @param SegmentType $i_type
-     * @param string $i_st
+     * @param string      $i_st
      * @return \Generator<Segment>
      * @throws Exception
      */
