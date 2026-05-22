@@ -23,6 +23,7 @@ class OctalEscape extends AbstractEscape {
 
     protected function replace( string $i_stMatch ) : string {
         $i_stMatch = substr( $i_stMatch, 1 ); // Remove the leading backslash
+        /** @phpstan-ignore argument.type */
         return chr( intval( octdec( $i_stMatch ) ) );
     }
 
