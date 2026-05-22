@@ -68,7 +68,7 @@ final class QuoteOperatorTest extends OperatorTestCase {
         self::assertPiece( "'Foo\'Bar'", "Foo'Bar", '', $quote->match( "'Foo\'Bar'" ) );
 
         $quote = QuoteOperator::single();
-        self::expectException( Exception::class );
+        $this->expectException( Exception::class );
         $quote->match( "'Foo" );
     }
 
