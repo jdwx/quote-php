@@ -15,7 +15,7 @@ use JDWX\Strict\TypeIs;
 class OpenEndedOperator extends AbstractOperator {
 
 
-    private const DEFAULT_NAME_REGEX = '/^([a-zA-Z_][a-zA-Z0-9_]*)/';
+    private const string DEFAULT_NAME_REGEX = '/^([a-zA-Z_][a-zA-Z0-9_]*)/';
 
     private readonly string $reName;
 

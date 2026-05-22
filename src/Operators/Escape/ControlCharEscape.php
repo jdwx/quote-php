@@ -13,7 +13,8 @@ use JDWX\Quote\Piece;
 class ControlCharEscape extends AbstractEscape {
 
 
-    private const ESCAPE_MAP = [
+    /** @var array<string, string> */
+    private const array ESCAPE_MAP = [
         '\r' => "\r",
         '\n' => "\n",
         '\t' => "\t",

@@ -13,7 +13,8 @@ use JDWX\Quote\Piece;
 class DelimiterOperator extends AbstractOperator {
 
 
-    protected const WHITESPACE_DELIMITERS = [ ' ', "\t", "\r", "\n" ];
+    /** @var list<string> */
+    protected const array WHITESPACE_DELIMITERS = [ ' ', "\t", "\r", "\n" ];
 
 
     /** @param list<string> $rDelimiters */
